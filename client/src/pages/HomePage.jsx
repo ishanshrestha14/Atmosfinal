@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import Hero from "../components/Hero";
 import Cards from "../components/Cards";
 import Features from "../components/Features";

@@ -1,5 +1,7 @@
 # EasyBuy — Full-Stack E-commerce Platform
 
+[![CI](https://github.com/ishanshrestha14/Atmosfinal/actions/workflows/ci.yml/badge.svg)](https://github.com/ishanshrestha14/Atmosfinal/actions/workflows/ci.yml)
+
 A full-stack e-commerce application with a **Spring Boot 3 / Spring Security 6** REST API, a **React + Tailwind** storefront and **PostgreSQL**, with JWT authentication, role-based access control, inventory tracking and transactional email.
 
 The whole stack (database, API, storefront and a local mail inbox) starts with one command.
@@ -80,15 +82,16 @@ The backend is organised **by feature** rather than by layer (`auth`, `product`,
 
 | Layer | Technologies |
 |---|---|
-| Backend | Java 17, Spring Boot 3, Spring Security 6, Spring Data JPA / Hibernate, Bean Validation, Spring AOP, Thymeleaf, springdoc-openapi |
+| Backend | Java 21, Spring Boot 3.5, Spring Security 6, Spring Data JPA / Hibernate, Bean Validation, Spring AOP, Thymeleaf, springdoc-openapi |
 | Auth | JWT (jjwt), BCrypt |
 | Frontend | React 18, Vite, Tailwind CSS, React Router, React Hook Form, Axios, Framer Motion |
-| Data | PostgreSQL 16 |
+| Data | PostgreSQL 16, Flyway migrations |
+| Testing | JUnit 5, Testcontainers (real PostgreSQL and SMTP), AssertJ, Awaitility |
 | Infrastructure | Docker (multi-stage builds), Docker Compose, nginx, Mailpit |
 
 ## Running without Docker
 
-Requires JDK 17 and Node 20+. Start only the infrastructure in Docker and run the apps on the host for hot reload:
+Requires JDK 21 and Node 20+. Start only the infrastructure in Docker and run the apps on the host for hot reload:
 
 ```bash
 docker compose up -d db mail
@@ -100,6 +103,21 @@ cd server && ./mvnw spring-boot:run
 cd client && npm install && npm run dev
 ```
 
+## Running the tests
+
+The integration tests start real PostgreSQL and Mailpit containers with [Testcontainers](https://testcontainers.com/), so Docker must be running. Use JDK 21.
+
+```bash
+cd server && ./mvnw verify
+```
+
+Highlights:
+
+- `OrderConcurrencyIT` sends 20 simultaneous checkouts for 5 units of stock and asserts exactly 5 succeed
+- `RoleAccessIT`, `OrderApiIT` and `AddressApiIT` cover role checks and per-user ownership of orders and addresses
+- `OrderEmailIT` makes PostgreSQL reject a transaction at `COMMIT` and asserts no confirmation email is sent
+- `PricingIT` covers exact decimal prices and order lines that keep the price paid
+
 ## Configuration
 
 Every setting has a local default, so nothing needs to be configured to run the project. To override a value, copy [`.env.example`](.env.example) to `.env`. The most important variables are:
@@ -110,7 +128,7 @@ Every setting has a local default, so nothing needs to be configured to run the 
 | `JWT_SECRET_KEY` | Base64 HMAC key for signing JWTs (`openssl rand -base64 32`) | development-only key |
 | `CORS_ALLOWED_ORIGINS` | Comma-separated list of allowed frontend origins | `http://localhost:3000,http://localhost:5173` |
 | `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_SENDER`, `EMAIL_SENDER_PASSWORD` | SMTP settings (set `EMAIL_SMTP_AUTH=true` and `EMAIL_STARTTLS=true` for a real provider) | Mailpit |
-| `SEED_DATA` | `always` to load demo data, `never` in production | `always` |
+| `FLYWAY_LOCATIONS` | Migration locations; drop `classpath:db/seed` in production to skip demo data | `classpath:db/migration,classpath:db/seed` |
 | `VITE_API_BASE_URL` | API URL baked into the frontend build | `http://localhost:8080` |
 
 ## API overview
@@ -181,11 +199,12 @@ Full, interactive documentation is available at `/swagger-ui/index.html` while t
 Active work on this project, tracked as individual pull requests:
 
 - [x] One-command local environment with Docker Compose, seed data and a local mail inbox
-- [ ] Automated test suite: unit tests, `@WebMvcTest` security tests, and Testcontainers integration tests against real PostgreSQL
-- [ ] Concurrency-safe stock reservation (optimistic locking) with a multi-threaded overselling test
-- [ ] Ownership checks on orders and addresses; tighter authorisation on inventory endpoints
-- [ ] Send email after the transaction commits (transactional events or an outbox)
-- [ ] `BigDecimal` money handling, with the price recorded on each order line at purchase time
-- [ ] RFC 7807 `ProblemDetail` error responses
-- [ ] Flyway schema migrations to replace `ddl-auto`
-- [ ] GitHub Actions CI and a public cloud deployment
+- [x] Integration test suite against real PostgreSQL and SMTP with Testcontainers
+- [x] Concurrency-safe stock reservation, proven by a multi-threaded overselling test
+- [x] Enforced role checks and per-user ownership of orders and addresses
+- [x] Confirmation emails sent only after the order commits
+- [x] Exact decimal prices, with the price recorded on each order line at purchase time
+- [x] RFC 7807 `ProblemDetail` error responses
+- [x] Flyway schema migrations to replace `ddl-auto`
+- [x] GitHub Actions CI: integration tests, frontend lint and build, Docker image builds
+- [ ] Public cloud deployment

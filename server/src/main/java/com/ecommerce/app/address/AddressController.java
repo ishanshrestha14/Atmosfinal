@@ -32,15 +32,16 @@ public class AddressController {
 
     @PutMapping("/{addressId}")
     @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<?> updateAddress(@Valid @RequestBody AddressDTO addressDTO, @PathVariable Long addressId) {
-        addressService.updateAddress(addressDTO, addressId);
+    public ResponseEntity<?> updateAddress(@AuthenticationPrincipal AppUser user,
+                                           @Valid @RequestBody AddressDTO addressDTO, @PathVariable Long addressId) {
+        addressService.updateAddress(user, addressDTO, addressId);
         return ResponseEntity.ok("Address successfully updated");
     }
 
     @DeleteMapping("/{addressId}")
     @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<?> deleteUserAddress(@PathVariable Long addressId) {
-        addressService.deleteAddress(addressId);
+    public ResponseEntity<?> deleteUserAddress(@AuthenticationPrincipal AppUser user, @PathVariable Long addressId) {
+        addressService.deleteAddress(user, addressId);
         return ResponseEntity.ok("Address successfully deleted");
     }
 }

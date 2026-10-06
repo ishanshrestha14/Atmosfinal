@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
@@ -49,7 +50,7 @@ public class EmailService {
 
     @Async
     public void sendOrderEmail(String to, String username, EmailTemplateName emailTemplateName, List<OrderItem> orderItems,
-                               Integer totalPrice, String subject) throws MessagingException {
+                               BigDecimal totalPrice, String subject) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper messageHelper = new MimeMessageHelper(
                 message,

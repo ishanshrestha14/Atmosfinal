@@ -39,7 +39,6 @@ services:
       PGDATABASE: ${PGDATABASE:-ecommerce}
       PGUSER: ${PGUSER:-ecommerce}
       PGPASSWORD: ${PGPASSWORD:-ecommerce}
-      DB_ACTION: ${DB_ACTION:-update}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-ZGV2LW9ubHktc2VjcmV0LWNoYW5nZS1tZS1pbi1wcm9kdWN0aW9uLTEyMzQ1Njc4OTA=}
       EMAIL_HOST: mail
       EMAIL_PORT: 1025
