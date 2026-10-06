@@ -31,6 +31,9 @@ public class EmailService {
     @Value("${app.storefront-url}")
     private String storefrontUrl;
 
+    @Value("${app.mail.from}")
+    private String fromAddress;
+
     @Async
     public void sendActivationEmail(String to, String username, EmailTemplateName emailTemplateName,
                                     String confirmationUrl, String activationCode, String subject) throws MessagingException {
@@ -94,7 +97,7 @@ public class EmailService {
         context.setVariables(model);
 
         messageHelper.setTo(to);
-        messageHelper.setFrom("contact@ecommerce.com");
+        messageHelper.setFrom(fromAddress);
         messageHelper.setSubject(subject);
 
         String html = templateEngine.process(emailTemplateName.getName(), context);

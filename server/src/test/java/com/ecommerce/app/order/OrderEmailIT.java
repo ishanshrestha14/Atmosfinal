@@ -2,6 +2,7 @@ package com.ecommerce.app.order;
 
 import com.ecommerce.app.product.Product;
 import com.ecommerce.app.support.IntegrationTest;
+import com.ecommerce.app.support.TestData;
 import com.ecommerce.app.user.AppUser;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.AfterEach;
@@ -53,6 +54,17 @@ class OrderEmailIT extends IntegrationTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         await().atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> assertThat(emailsReceivedBy(alice.getEmail())).isEqualTo(1));
+    }
+
+    @Test
+    void confirmationEmailIsSentFromTheConfiguredSender() {
+        AppUser alice = testData.customer();
+
+        placeOrder(alice, testData.productWithStock(100, 10), 1);
+
+        await().atMost(Duration.ofSeconds(10))
+                .untilAsserted(() -> assertThat(emailsReceivedBy(alice.getEmail())).isEqualTo(1));
+        assertThat(latestEmailSenderFor(alice.getEmail())).isEqualTo(TestData.MAIL_FROM);
     }
 
     @Test

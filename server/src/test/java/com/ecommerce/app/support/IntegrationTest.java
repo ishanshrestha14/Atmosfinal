@@ -44,6 +44,7 @@ public abstract class IntegrationTest {
         registry.add("spring.datasource.password", POSTGRES::getPassword);
         registry.add("spring.mail.host", MAILPIT::getHost);
         registry.add("spring.mail.port", () -> MAILPIT.getMappedPort(1025));
+        registry.add("app.mail.from", () -> TestData.MAIL_FROM);
     }
 
     @Autowired
@@ -67,6 +68,14 @@ public abstract class IntegrationTest {
 
     protected ResponseEntity<String> call(HttpMethod method, String path, HttpHeaders headers) {
         return call(method, path, headers, null);
+    }
+
+    /** Sender address of the most recent email Mailpit received for the given recipient. */
+    protected String latestEmailSenderFor(String recipient) {
+        String api = "http://" + MAILPIT.getHost() + ":" + MAILPIT.getMappedPort(8025) + "/api/v1";
+        Map<?, ?> search = http.getForObject(api + "/search?query=to:\"" + recipient + "\"", Map.class);
+        Map<?, ?> latest = (Map<?, ?>) ((java.util.List<?>) search.get("messages")).get(0);
+        return (String) ((Map<?, ?>) latest.get("From")).get("Address");
     }
 
     /** Number of emails Mailpit has received for the given recipient. */
