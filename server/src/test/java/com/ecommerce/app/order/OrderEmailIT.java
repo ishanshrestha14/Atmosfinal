@@ -56,6 +56,19 @@ class OrderEmailIT extends IntegrationTest {
     }
 
     @Test
+    void confirmationEmailLinksProductImagesOnTheStorefront() {
+        AppUser alice = testData.customer();
+        Product product = testData.productWithStock(100, 10);
+
+        placeOrder(alice, product, 1);
+
+        await().atMost(Duration.ofSeconds(10))
+                .untilAsserted(() -> assertThat(emailsReceivedBy(alice.getEmail())).isEqualTo(1));
+        assertThat(latestEmailHtmlFor(alice.getEmail()))
+                .contains("src=\"http://localhost:3000" + product.getFilePath() + "\"");
+    }
+
+    @Test
     void orderIsPlacedEvenWhenTheMailServerIsDown() {
         doThrow(new MailSendException("SMTP server unavailable")).when(mailSender).send(any(MimeMessage.class));
         AppUser alice = testData.customer();

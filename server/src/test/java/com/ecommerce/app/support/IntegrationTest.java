@@ -76,4 +76,13 @@ public abstract class IntegrationTest {
         Map<?, ?> result = http.getForObject(url, Map.class);
         return ((Number) result.get("messages_count")).intValue();
     }
+
+    /** HTML body of the most recent email Mailpit received for the given recipient. */
+    protected String latestEmailHtmlFor(String recipient) {
+        String api = "http://" + MAILPIT.getHost() + ":" + MAILPIT.getMappedPort(8025) + "/api/v1";
+        Map<?, ?> search = http.getForObject(api + "/search?query=to:\"" + recipient + "\"", Map.class);
+        Map<?, ?> latest = (Map<?, ?>) ((java.util.List<?>) search.get("messages")).get(0);
+        Map<?, ?> message = http.getForObject(api + "/message/" + latest.get("ID"), Map.class);
+        return (String) message.get("HTML");
+    }
 }
