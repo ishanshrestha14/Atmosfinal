@@ -202,6 +202,6 @@ Active work on this project, tracked as individual pull requests:
 - [x] Enforced role checks and per-user ownership of orders and addresses
 - [x] Confirmation emails sent only after the order commits
 - [x] Exact decimal prices, with the price recorded on each order line at purchase time
-- [ ] RFC 7807 `ProblemDetail` error responses
+- [x] RFC 7807 `ProblemDetail` error responses
 - [x] Flyway schema migrations to replace `ddl-auto`
 - [ ] GitHub Actions CI and a public cloud deployment

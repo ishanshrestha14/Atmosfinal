@@ -21,6 +21,7 @@ public class WebSecurityConfig {
 
     private final JWTRequestFilter jwtRequestFilter;
     private final AuthenticationProvider authenticationProvider;
+    private final ProblemDetailSecurityHandler problemDetailSecurityHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -51,6 +52,10 @@ public class WebSecurityConfig {
                             .authenticated();
 
                 })
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(problemDetailSecurityHandler)
+                        .accessDeniedHandler(problemDetailSecurityHandler)
+                )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
