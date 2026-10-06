@@ -2,6 +2,7 @@ package com.ecommerce.app.config;
 
 import com.ecommerce.app.user.AppUserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,6 +21,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class ApplicationConfig {
 
     private final AppUserRepository appUserRepository;
+
+    @Value("${app.cors.allowed-origins}")
+    private String[] allowedOrigins;
 
     @Bean
     public UserDetailsService userDetailsService() {
@@ -51,13 +55,7 @@ public class ApplicationConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins(
-                                "https://e-commerce-webapp-five.vercel.app",
-                                "https://e-commerce-webapp-git-master-peters-projects-162e5e2c.vercel.app",
-                                "https://e-commerce-webapp-2dvvjg7v0-peters-projects-162e5e2c.vercel.app",
-                                "https://e-commerce-api-production-691a.up.railway.app"
-//                                "http://localhost:5173"
-                        )
+                        .allowedOrigins(allowedOrigins)
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH")
                         .allowCredentials(true).maxAge(3600);
             }
