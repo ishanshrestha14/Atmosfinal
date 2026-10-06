@@ -28,6 +28,12 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String usernameSender;
 
+    @Value("${app.storefront-url}")
+    private String storefrontUrl;
+
+    @Value("${app.mail.from}")
+    private String fromAddress;
+
     @Async
     public void sendActivationEmail(String to, String username, EmailTemplateName emailTemplateName,
                                     String confirmationUrl, String activationCode, String subject) throws MessagingException {
@@ -60,6 +66,7 @@ public class EmailService {
 
         Map<String, Object> model = new HashMap<>();
         model.put("usernameTo", username);
+        model.put("storefrontUrl", storefrontUrl);
         model.put("orderItems", orderItems);
         model.put("totalPrice", totalPrice);
 
@@ -90,7 +97,7 @@ public class EmailService {
         context.setVariables(model);
 
         messageHelper.setTo(to);
-        messageHelper.setFrom("contact@ecommerce.com");
+        messageHelper.setFrom(fromAddress);
         messageHelper.setSubject(subject);
 
         String html = templateEngine.process(emailTemplateName.getName(), context);
