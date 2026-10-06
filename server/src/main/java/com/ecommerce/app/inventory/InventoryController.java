@@ -12,7 +12,6 @@ import java.util.List;
 @LoggingController
 @RestController
 @RequestMapping("/inventory")
-@PreAuthorize("hasRole('STAFF')")
 public class InventoryController {
 
     private final InventoryService inventoryService;
@@ -22,6 +21,7 @@ public class InventoryController {
         this.inventoryService = inventoryService;
     }
 
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping
     public ResponseEntity<Inventory> addInventory(@Valid @RequestBody InventoryBody inventoryDto) {
         return ResponseEntity.ok(inventoryService.addInventory(inventoryDto));
@@ -37,6 +37,7 @@ public class InventoryController {
         return ResponseEntity.ok(inventoryService.getInventoryForProduct(productId));
     }
 
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping
     public ResponseEntity<Void> updateProductQuantities(@Valid @RequestBody List<InventoryResponse> productUpdates) {
         inventoryService.updateProductQuantities(productUpdates);

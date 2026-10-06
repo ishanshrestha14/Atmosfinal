@@ -13,5 +13,7 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
 
     List<Address> findByAppUser(AppUser appUser);
 
+    Optional<Address> findByIdAndAppUser(Long id, AppUser appUser);
+
     void deleteByAppUser(AppUser appUser);
 }
