@@ -1,8 +1,5 @@
 package com.ecommerce.app.logging;
 
-import com.ecommerce.app.auth.AuthController;
-import com.ecommerce.app.auth.AuthService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -10,6 +7,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+/**
+ * Audit trail of controller and service calls: which operation ran, how long it took and whether
+ * it failed. Arguments and results are deliberately not logged, since they carry personal data
+ * (emails, addresses) and serialising them on every call is expensive.
+ */
 @Aspect
 @Component
 public class LoggingAspect {
@@ -18,32 +20,28 @@ public class LoggingAspect {
 
     @Around("@within(com.ecommerce.app.logging.LoggingController) || @annotation(com.ecommerce.app.logging.LoggingController)")
     public Object logController(ProceedingJoinPoint joinPoint) throws Throwable {
-        return appLogger(joinPoint, "Controller");
+        return audit(joinPoint, "Controller");
     }
 
     @Around("@within(com.ecommerce.app.logging.LoggingService) || @annotation(com.ecommerce.app.logging.LoggingService)")
     public Object logService(ProceedingJoinPoint joinPoint) throws Throwable {
-        return appLogger(joinPoint, "Service");
+        return audit(joinPoint, "Service");
     }
 
-    public Object appLogger(ProceedingJoinPoint pjp, String layer) throws Throwable {
-        ObjectMapper mapper = new ObjectMapper();
-        String className = pjp.getTarget().getClass().getName();
-        String methodName = pjp.getSignature().getName();
-        Object[] args = pjp.getArgs();
-
-        if (className.equals(AuthController.class.getName()) || className.equals(AuthService.class.getName())
-                || methodName.equals("registerStaff")) {
-            logger.info("[{}]: method invoked: {}.{}", layer, className, methodName);
-            Object result = pjp.proceed(args);
-            logger.info("[{}]: method finished successfully: {}.{}", layer, className, methodName);
+    private Object audit(ProceedingJoinPoint joinPoint, String layer) throws Throwable {
+        String operation = joinPoint.getSignature().getDeclaringType().getSimpleName() + "." + joinPoint.getSignature().getName();
+        long start = System.nanoTime();
+        try {
+            Object result = joinPoint.proceed();
+            logger.info("[{}] {} completed in {} ms", layer, operation, elapsedMillis(start));
             return result;
+        } catch (Throwable failure) {
+            logger.warn("[{}] {} failed after {} ms: {}", layer, operation, elapsedMillis(start), failure.getClass().getSimpleName());
+            throw failure;
         }
-
-        logger.info("[{}]: method invoked: {}.{}({})", layer, className, methodName, mapper.writeValueAsString(args));
-        Object result = pjp.proceed(args);
-        logger.info("[{}]: method result: {}.{} = {}", layer, className, methodName, mapper.writeValueAsString(result));
-        return result;
     }
 
+    private static long elapsedMillis(long startNanos) {
+        return (System.nanoTime() - startNanos) / 1_000_000;
+    }
 }
