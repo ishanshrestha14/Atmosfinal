@@ -22,7 +22,6 @@ const loginFormInputs = [
   },
 ];
 
-/* eslint-disable react/prop-types */
 function LoginForm() {
   return (
     <div>

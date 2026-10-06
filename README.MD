@@ -1,5 +1,7 @@
 # EasyBuy — Full-Stack E-commerce Platform
 
+[![CI](https://github.com/ishanshrestha14/Atmosfinal/actions/workflows/ci.yml/badge.svg)](https://github.com/ishanshrestha14/Atmosfinal/actions/workflows/ci.yml)
+
 A full-stack e-commerce application with a **Spring Boot 3 / Spring Security 6** REST API, a **React + Tailwind** storefront and **PostgreSQL**, with JWT authentication, role-based access control, inventory tracking and transactional email.
 
 The whole stack (database, API, storefront and a local mail inbox) starts with one command.
@@ -204,4 +206,5 @@ Active work on this project, tracked as individual pull requests:
 - [x] Exact decimal prices, with the price recorded on each order line at purchase time
 - [x] RFC 7807 `ProblemDetail` error responses
 - [x] Flyway schema migrations to replace `ddl-auto`
-- [ ] GitHub Actions CI and a public cloud deployment
+- [x] GitHub Actions CI: integration tests, frontend lint and build, Docker image builds
+- [ ] Public cloud deployment
