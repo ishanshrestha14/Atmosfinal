@@ -34,6 +34,7 @@ import java.util.UUID;
 public class TestData {
 
     public static final String PASSWORD = "Passw0rd!";
+    public static final String MAIL_FROM = "orders@shop.test";
 
     private final AppUserRepository appUserRepository;
     private final RoleRepository roleRepository;
