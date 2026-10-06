@@ -54,10 +54,10 @@ ON CONFLICT (product_id) DO NOTHING;
 
 -- Pre-activated demo accounts
 --   customer: demo  / Demo1234!
---   staff:    staff / Staff1234!
+--   staff:    staff / Staff1234!  (password hash comes from DEMO_STAFF_PASSWORD_HASH; set your own on a public deployment)
 INSERT INTO app_user (username, email, password, enabled, account_locked, created_date) VALUES
     ('demo', 'demo@atmos.local', '$2y$10$5mcGpKIq.j35.Fblg6QqA.1lHTPZoxU0OvDHSAbgCnIZZ3UJT5Li6', true, false, CAST(NOW() AS VARCHAR)),
-    ('staff', 'staff@atmos.local', '$2y$10$APGM7UT5eOMgYQurvtpBcuoxWXJpcycQnvFnHkIDMK4qDhR.uyuZe', true, false, CAST(NOW() AS VARCHAR))
+    ('staff', 'staff@atmos.local', '${demo_staff_password_hash}', true, false, CAST(NOW() AS VARCHAR))
 ON CONFLICT (username) DO NOTHING;
 
 INSERT INTO app_user_roles (users_id, roles_id)
