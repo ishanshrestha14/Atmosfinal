@@ -14,7 +14,7 @@ public enum ErrorCodes {
     BAD_CREDENTIALS(1, "Username or password is incorrect", UNAUTHORIZED),
     INCORRECT_USERNAME(2, "Incorrect username. This username does not exist.", UNAUTHORIZED),
     INCORRECT_PASSWORD(3, "Incorrect password.", UNAUTHORIZED),
-    NOT_MATCHING_PASSWORDS(4, "Provided passwords do not match.", UNAUTHORIZED),
+    NOT_MATCHING_PASSWORDS(4, "Provided passwords do not match.", BAD_REQUEST),
     INCORRECT_CURRENT_PASSWORD(5, "Incorrect current password.", UNAUTHORIZED),
     NEW_PASSWORD_DOES_NOT_MATCH(6, "The new password does not match.", UNAUTHORIZED),
     ACCOUNT_LOCKED(7, "User account is locked.", FORBIDDEN),

@@ -54,7 +54,7 @@ public class AuthService {
     public AuthResponse register(RegistrationBody registrationBody) throws MessagingException {
 
         if (!registrationBody.getPassword().equals(registrationBody.getConfirmPassword())) {
-            throw new RuntimeException("Passwords do not match");
+            throw new NotMatchingPasswordsException("Provided passwords do not match.");
         }
 
         var userRole =  roleRepository.findByName(registrationBody.getRole())
