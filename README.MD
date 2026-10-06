@@ -110,7 +110,7 @@ Every setting has a local default, so nothing needs to be configured to run the 
 | `JWT_SECRET_KEY` | Base64 HMAC key for signing JWTs (`openssl rand -base64 32`) | development-only key |
 | `CORS_ALLOWED_ORIGINS` | Comma-separated list of allowed frontend origins | `http://localhost:3000,http://localhost:5173` |
 | `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_SENDER`, `EMAIL_SENDER_PASSWORD` | SMTP settings (set `EMAIL_SMTP_AUTH=true` and `EMAIL_STARTTLS=true` for a real provider) | Mailpit |
-| `SEED_DATA` | `always` to load demo data, `never` in production | `always` |
+| `FLYWAY_LOCATIONS` | Migration locations; drop `classpath:db/seed` in production to skip demo data | `classpath:db/migration,classpath:db/seed` |
 | `VITE_API_BASE_URL` | API URL baked into the frontend build | `http://localhost:8080` |
 
 ## API overview
@@ -187,5 +187,5 @@ Active work on this project, tracked as individual pull requests:
 - [ ] Send email after the transaction commits (transactional events or an outbox)
 - [ ] `BigDecimal` money handling, with the price recorded on each order line at purchase time
 - [ ] RFC 7807 `ProblemDetail` error responses
-- [ ] Flyway schema migrations to replace `ddl-auto`
+- [x] Flyway schema migrations to replace `ddl-auto`
 - [ ] GitHub Actions CI and a public cloud deployment
