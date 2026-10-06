@@ -1,5 +1,6 @@
 import axios from "axios";
 import { API_BASE_URL } from "../constants/constants";
+import { problemMessage } from "./problemMessage";
 
 export const authRequest = async (
   url,
@@ -23,7 +24,8 @@ export const authRequest = async (
     return response.data;
   } catch (error) {
     // If the initial request fails
-    if (error.response && error.response.status === 403) {
+    // 401 means the access token is missing or expired: refresh it once and retry
+    if (error.response && error.response.status === 401) {
       try {
         // Refresh the token
         const refreshResponse = await axios.post(
@@ -56,7 +58,7 @@ export const authRequest = async (
     } else {
       // Handle other errors
       if (error.response) {
-        setErrors(error.response.data.errors || ["An unknown error occurred"]);
+        setErrors([problemMessage(error.response.data, "An unknown error occurred")]);
       } else {
         setErrors(["An error occurred while communicating with the server"]);
       }

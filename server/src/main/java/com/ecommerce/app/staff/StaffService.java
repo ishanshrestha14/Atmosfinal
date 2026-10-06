@@ -2,6 +2,7 @@ package com.ecommerce.app.staff;
 
 import com.ecommerce.app.category.Category;
 import com.ecommerce.app.category.CategoryRepository;
+import com.ecommerce.app.handler.exceptions.ResourceNotFoundException;
 import com.ecommerce.app.inventory.Inventory;
 import com.ecommerce.app.inventory.InventoryRepository;
 import com.ecommerce.app.logging.LoggingService;
@@ -53,7 +54,7 @@ public class StaffService {
 
     public Product getProductById(Long id) {
         return productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Product", id));
     }
 
     public Product updateProduct(Long id, ProductBody productBody) {
@@ -70,12 +71,12 @@ public class StaffService {
             product.setCategory(category);
 
             return productRepository.save(product);
-        }).orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+        }).orElseThrow(() -> new ResourceNotFoundException("Product", id));
     }
 
     public void deleteProduct(Long id) {
         if (productRepository.findById(id).isEmpty()) {
-            throw new RuntimeException("Product not found with id: " + id);
+            throw new ResourceNotFoundException("Product", id);
         }
         productRepository.deleteById(id);
     }

@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import Button from "./shared/Button";
 import { API_BASE_URL } from "../constants/constants";
 
-function CTA() {
+function CallToAction() {
   const [selectedOption, setSelectedOption] = useState("");
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [errors, setErrors] = useState({});
@@ -203,4 +203,4 @@ function Form({
   );
 }
 
-export default CTA;
+export default CallToAction;

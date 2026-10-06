@@ -1,5 +1,6 @@
 import axios from "axios";
 import { API_BASE_URL } from "../constants/constants";
+import { problemMessage } from "./problemMessage";
 
 export const authenticateUser = async (
   payload,
@@ -20,7 +21,7 @@ export const authenticateUser = async (
     }
   } catch (error) {
     if (error.response) {
-      setErrors(error.response.data.errorMessage || "An error occurred");
+      setErrors(problemMessage(error.response.data, "An error occurred"));
     } else if (error.request) {
       setErrors("No response received from the server");
     } else {

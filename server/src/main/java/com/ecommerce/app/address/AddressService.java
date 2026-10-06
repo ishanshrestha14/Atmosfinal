@@ -1,5 +1,6 @@
 package com.ecommerce.app.address;
 
+import com.ecommerce.app.handler.exceptions.ResourceNotFoundException;
 import com.ecommerce.app.logging.LoggingService;
 import com.ecommerce.app.order.repos.AddressRepository;
 import com.ecommerce.app.user.AppUser;
@@ -42,9 +43,8 @@ public class AddressService {
     }
 
     @Transactional
-    public void updateAddress(AddressDTO addressDTO, Long addressId) {
-        Address existingAddress = addressRepository.findById(addressId).
-                orElseThrow(() -> new RuntimeException("No address found with id: " + addressId));
+    public void updateAddress(AppUser user, AddressDTO addressDTO, Long addressId) {
+        Address existingAddress = findOwnedAddress(user, addressId);
 
         existingAddress.setAddressLine1(addressDTO.getAddressLine1());
         existingAddress.setAddressLine2(addressDTO.getAddressLine2());
@@ -55,7 +55,12 @@ public class AddressService {
     }
 
     @Transactional
-    public void deleteAddress(Long addressId) {
-        addressRepository.deleteById(addressId);
+    public void deleteAddress(AppUser user, Long addressId) {
+        addressRepository.delete(findOwnedAddress(user, addressId));
+    }
+
+    private Address findOwnedAddress(AppUser user, Long addressId) {
+        return addressRepository.findByIdAndAppUser(addressId, user)
+                .orElseThrow(() -> new ResourceNotFoundException("Address", addressId));
     }
 }

@@ -1,5 +1,4 @@
 /* eslint-disable react/prop-types */
-/* eslint-disable no-undef */
 import { useState } from "react";
 import SideBar from "../components/SideBar/SideBar";
 import Card from "../components/Card";

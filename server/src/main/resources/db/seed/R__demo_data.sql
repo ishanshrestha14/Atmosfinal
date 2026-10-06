@@ -1,5 +1,5 @@
--- Seed data for local development and demos.
--- Runs on every startup after Hibernate creates the schema; every insert is idempotent.
+-- Demo data for local development and demos (repeatable migration: re-runs whenever this file changes).
+-- Every insert is idempotent. Production leaves this location out: FLYWAY_LOCATIONS=classpath:db/migration
 
 INSERT INTO role (name, created_date) VALUES
     ('CUSTOMER', CAST(NOW() AS VARCHAR)),
@@ -52,7 +52,7 @@ FROM (VALUES
 JOIN product p ON p.name = s.product_name
 ON CONFLICT (product_id) DO NOTHING;
 
--- Pre-activated demo accounts (local/demo only - disable with SEED_DATA=never in production)
+-- Pre-activated demo accounts
 --   customer: demo  / Demo1234!
 --   staff:    staff / Staff1234!
 INSERT INTO app_user (username, email, password, enabled, account_locked, created_date) VALUES

@@ -1,9 +1,10 @@
 package com.ecommerce.app.order;
 
 import com.ecommerce.app.address.Address;
-import com.ecommerce.app.email.EmailService;
-import com.ecommerce.app.email.EmailTemplateName;
 import com.ecommerce.app.email.OrderItem;
+import com.ecommerce.app.handler.exceptions.InsufficientStockException;
+import com.ecommerce.app.handler.exceptions.ResourceNotFoundException;
+import com.ecommerce.app.inventory.InventoryRepository;
 import com.ecommerce.app.logging.LoggingService;
 import com.ecommerce.app.product.Product;
 import com.ecommerce.app.order.repos.AddressRepository;
@@ -11,14 +12,16 @@ import com.ecommerce.app.order.repos.WebOrderContentRepository;
 import com.ecommerce.app.order.repos.WebOrderRepository;
 import com.ecommerce.app.product.ProductRepository;
 import com.ecommerce.app.user.AppUser;
-import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @LoggingService
 @Service
@@ -28,23 +31,27 @@ public class OrderService {
     private final WebOrderRepository webOrderRepository;
     private final AddressRepository addressRepository;
     private final ProductRepository productRepository;
+    private final InventoryRepository inventoryRepository;
     private final WebOrderContentRepository webOrderContentRepository;
-    private final EmailService emailService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public List<WebOrder> getOrders(AppUser user) {
         Long userId = user.getId();
         return webOrderRepository.findByAppUserId(userId);
     }
 
-    public WebOrder getOrder(Long orderId) {
-        return webOrderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order with this is is not present " + orderId));
+    /** Staff can read any order; customers can only read their own. */
+    public WebOrder getOrder(AppUser requester, Long orderId) {
+        Optional<WebOrder> order = isStaff(requester)
+                ? webOrderRepository.findById(orderId)
+                : webOrderRepository.findByIdAndAppUser_Id(orderId, requester.getId());
+        return order.orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
     }
 
     @Transactional
-    public WebOrder addOrder(AppUser appUser, List<WebOrderContentDTO> dto, Long addressId) throws MessagingException {
-        Address address = addressRepository.findById(addressId)
-                .orElseThrow(() -> new RuntimeException("Address not found"));
+    public WebOrder addOrder(AppUser appUser, List<WebOrderContentDTO> dto, Long addressId) {
+        Address address = addressRepository.findByIdAndAppUser(addressId, appUser)
+                .orElseThrow(() -> new ResourceNotFoundException("Address", addressId));
 
         WebOrder newWebOrder = WebOrder.builder()
                 .appUser(appUser)
@@ -58,17 +65,16 @@ public class OrderService {
 
         for (WebOrderContentDTO orderContentDTO : dto) {
             Product product = productRepository.findById(orderContentDTO.getProductId())
-                    .orElseThrow(() -> new RuntimeException("Product not found with id:" + orderContentDTO.getProductId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Product", orderContentDTO.getProductId()));
 
-            Integer initialQuantity = product.getInventory().getQuantity();
-            if (initialQuantity < orderContentDTO.getQuantity()) {
-                throw new RuntimeException("Not enough inventory");
+            if (inventoryRepository.reserveStock(product.getId(), orderContentDTO.getQuantity()) == 0) {
+                throw new InsufficientStockException(product.getId());
             }
-            product.getInventory().setQuantity(initialQuantity - orderContentDTO.getQuantity());
 
             WebOrderContent webOrderContent = WebOrderContent.builder()
                     .product(product)
                     .quantity(orderContentDTO.getQuantity())
+                    .unitPrice(product.getPrice())
                     .webOrder(savedOrder)
                     .build();
 
@@ -81,23 +87,27 @@ public class OrderService {
                     .image(product.getFilePath())
                     .price(product.getPrice())
                     .quantity(orderContentDTO.getQuantity())
+                    .subTotal(product.getPrice().multiply(BigDecimal.valueOf(orderContentDTO.getQuantity())))
                     .build();
 
             orderItems.add(orderItem);
         }
 
-        Integer totalPrice = orderItems.stream()
-                .mapToInt(item -> item.getPrice() * item.getQuantity())
-                .sum();
+        BigDecimal totalPrice = savedOrder.getTotal();
 
-        emailService.sendOrderEmail(appUser.getEmail(), appUser.getUsername(), EmailTemplateName.ORDER_CONFIRMATION, orderItems, totalPrice, "Your Order Confirmation");
+        eventPublisher.publishEvent(new OrderPlacedEvent(appUser.getEmail(), appUser.getUsername(), orderItems, totalPrice));
 
         return webOrderRepository.save(savedOrder);
     }
 
     public void deleteOrder(Long orderId) {
         WebOrder webOrder = webOrderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order with this is is not present " + orderId));
+                .orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
         webOrderRepository.delete(webOrder);
+    }
+
+    private static boolean isStaff(AppUser user) {
+        return user.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_STAFF"));
     }
 }
