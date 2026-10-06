@@ -4,6 +4,8 @@ import com.ecommerce.app.address.Address;
 import com.ecommerce.app.email.EmailService;
 import com.ecommerce.app.email.EmailTemplateName;
 import com.ecommerce.app.email.OrderItem;
+import com.ecommerce.app.handler.exceptions.InsufficientStockException;
+import com.ecommerce.app.inventory.InventoryRepository;
 import com.ecommerce.app.logging.LoggingService;
 import com.ecommerce.app.product.Product;
 import com.ecommerce.app.order.repos.AddressRepository;
@@ -28,6 +30,7 @@ public class OrderService {
     private final WebOrderRepository webOrderRepository;
     private final AddressRepository addressRepository;
     private final ProductRepository productRepository;
+    private final InventoryRepository inventoryRepository;
     private final WebOrderContentRepository webOrderContentRepository;
     private final EmailService emailService;
 
@@ -60,11 +63,9 @@ public class OrderService {
             Product product = productRepository.findById(orderContentDTO.getProductId())
                     .orElseThrow(() -> new RuntimeException("Product not found with id:" + orderContentDTO.getProductId()));
 
-            Integer initialQuantity = product.getInventory().getQuantity();
-            if (initialQuantity < orderContentDTO.getQuantity()) {
-                throw new RuntimeException("Not enough inventory");
+            if (inventoryRepository.reserveStock(product.getId(), orderContentDTO.getQuantity()) == 0) {
+                throw new InsufficientStockException(product.getId());
             }
-            product.getInventory().setQuantity(initialQuantity - orderContentDTO.getQuantity());
 
             WebOrderContent webOrderContent = WebOrderContent.builder()
                     .product(product)
