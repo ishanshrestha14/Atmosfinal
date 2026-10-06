@@ -45,6 +45,16 @@ class ErrorResponseIT extends IntegrationTest {
     }
 
     @Test
+    void registrationWithMismatchedPasswordsIsABadRequest() {
+        ResponseEntity<String> response = call(POST, "/register", new HttpHeaders(),
+                Map.of("username", "mismatch-user", "email", "mismatch@test.local",
+                        "password", "Passw0rd!", "confirmPassword", "Different1!"));
+
+        assertProblem(response, HttpStatus.BAD_REQUEST);
+        assertThat((Integer) JsonPath.read(response.getBody(), "$.errorCode")).isEqualTo(4);
+    }
+
+    @Test
     void malformedJsonIsABadRequest() {
         HttpHeaders headers = authAs(testData.customer());
         headers.setContentType(MediaType.APPLICATION_JSON);
