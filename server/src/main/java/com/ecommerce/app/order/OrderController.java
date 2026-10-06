@@ -1,6 +1,6 @@
 package com.ecommerce.app.order;
 
-import com.ecommerce.app.logging.LoggingService;
+import com.ecommerce.app.logging.LoggingController;
 import com.ecommerce.app.user.AppUser;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@LoggingService
+@LoggingController
 @RestController
 @RequestMapping("/order")
 public class OrderController {
