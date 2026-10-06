@@ -1,0 +1,63 @@
+# One-command local stack:  docker compose up --build
+#   Storefront  http://localhost:3000
+#   API + docs  http://localhost:8080/swagger-ui/index.html
+#   Inbox       http://localhost:8025   (all outgoing email lands here)
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${PGDATABASE:-ecommerce}
+      POSTGRES_USER: ${PGUSER:-ecommerce}
+      POSTGRES_PASSWORD: ${PGPASSWORD:-ecommerce}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mail:
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025" # web inbox
+      - "1025:1025" # SMTP
+
+  api:
+    build: ./server
+    depends_on:
+      db:
+        condition: service_healthy
+      mail:
+        condition: service_started
+    environment:
+      PGHOST: db
+      PGPORT: 5432
+      PGDATABASE: ${PGDATABASE:-ecommerce}
+      PGUSER: ${PGUSER:-ecommerce}
+      PGPASSWORD: ${PGPASSWORD:-ecommerce}
+      DB_ACTION: ${DB_ACTION:-update}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-ZGV2LW9ubHktc2VjcmV0LWNoYW5nZS1tZS1pbi1wcm9kdWN0aW9uLTEyMzQ1Njc4OTA=}
+      EMAIL_HOST: mail
+      EMAIL_PORT: 1025
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      ACTIVATE_ACCOUNT_URL: ${ACTIVATE_ACCOUNT_URL:-http://localhost:3000}
+    ports:
+      - "8080:8080"
+
+  client:
+    build:
+      context: ./client
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8080}
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "3000:80"
+
+volumes:
+  db-data:
