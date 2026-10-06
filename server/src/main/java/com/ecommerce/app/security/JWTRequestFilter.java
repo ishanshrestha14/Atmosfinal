@@ -1,5 +1,6 @@
 package com.ecommerce.app.security;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,10 +30,6 @@ public class JWTRequestFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        if (request.getServletPath().contains("/register")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
         final String username;
@@ -41,7 +38,13 @@ public class JWTRequestFilter extends OncePerRequestFilter {
             return;
         }
         jwt = authHeader.substring(7);
-        username = jwtService.getUsername(jwt);
+        try {
+            username = jwtService.getUsername(jwt);
+        } catch (JwtException | IllegalArgumentException invalidToken) {
+            // An unusable token is treated as anonymous; protected endpoints still reject the request
+            filterChain.doFilter(request, response);
+            return;
+        }
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
             if (jwtService.isTokenValid(jwt, userDetails)) {

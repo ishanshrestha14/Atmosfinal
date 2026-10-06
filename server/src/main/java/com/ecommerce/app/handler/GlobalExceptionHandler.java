@@ -1,7 +1,9 @@
 package com.ecommerce.app.handler;
 
+import com.ecommerce.app.handler.exceptions.InsufficientStockException;
 import com.ecommerce.app.handler.exceptions.InvalidTokenException;
 import com.ecommerce.app.handler.exceptions.NotMatchingPasswordsException;
+import com.ecommerce.app.handler.exceptions.ResourceNotFoundException;
 import com.ecommerce.app.handler.exceptions.WrongOldPasswordException;
 import jakarta.mail.MessagingException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -13,6 +15,7 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -80,6 +83,39 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ExceptionResponse.builder()
                         .validationError(errors)
+                        .timestamp(LocalDateTime.now())
+                        .build());
+    }
+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ExceptionResponse> handleException(HandlerMethodValidationException e) {
+        Set<String> errors = new HashSet<>();
+        e.getAllErrors().forEach(error -> errors.add(error.getDefaultMessage()));
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ExceptionResponse.builder()
+                        .validationError(errors)
+                        .timestamp(LocalDateTime.now())
+                        .build());
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ExceptionResponse> handleException(ResourceNotFoundException e) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ExceptionResponse.builder()
+                        .error(e.getMessage())
+                        .timestamp(LocalDateTime.now())
+                        .build());
+    }
+
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<ExceptionResponse> handleException(InsufficientStockException e) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ExceptionResponse.builder()
+                        .error(e.getMessage())
                         .timestamp(LocalDateTime.now())
                         .build());
     }
