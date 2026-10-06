@@ -17,6 +17,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,6 +74,7 @@ public class OrderService {
             WebOrderContent webOrderContent = WebOrderContent.builder()
                     .product(product)
                     .quantity(orderContentDTO.getQuantity())
+                    .unitPrice(product.getPrice())
                     .webOrder(savedOrder)
                     .build();
 
@@ -85,14 +87,13 @@ public class OrderService {
                     .image(product.getFilePath())
                     .price(product.getPrice())
                     .quantity(orderContentDTO.getQuantity())
+                    .subTotal(product.getPrice().multiply(BigDecimal.valueOf(orderContentDTO.getQuantity())))
                     .build();
 
             orderItems.add(orderItem);
         }
 
-        Integer totalPrice = orderItems.stream()
-                .mapToInt(item -> item.getPrice() * item.getQuantity())
-                .sum();
+        BigDecimal totalPrice = savedOrder.getTotal();
 
         eventPublisher.publishEvent(new OrderPlacedEvent(appUser.getEmail(), appUser.getUsername(), orderItems, totalPrice));
 

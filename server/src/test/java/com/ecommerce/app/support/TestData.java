@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.test.context.TestComponent;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -61,7 +62,7 @@ public class TestData {
                 .shortDescription("short")
                 .longDescription("long")
                 .brand("brand")
-                .price(price)
+                .price(BigDecimal.valueOf(price))
                 .category(category)
                 .build());
         Inventory inventory = inventoryRepository.save(Inventory.builder()
@@ -90,6 +91,7 @@ public class TestData {
         webOrderContentRepository.save(WebOrderContent.builder()
                 .product(product)
                 .quantity(quantity)
+                .unitPrice(product.getPrice())
                 .webOrder(order)
                 .build());
         return order;
