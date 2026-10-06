@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # ---- Build stage ----
-FROM maven:3.9-eclipse-temurin-17 AS build
+FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /workspace
 
 # Resolve dependencies first so they are cached between source changes
@@ -13,7 +13,7 @@ RUN --mount=type=cache,target=/root/.m2 mvn -B -q package -DskipTests \
     && cp target/*.jar app.jar
 
 # ---- Runtime stage ----
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends curl \
