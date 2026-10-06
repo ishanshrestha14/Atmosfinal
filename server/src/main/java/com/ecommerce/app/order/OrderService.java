@@ -1,8 +1,6 @@
 package com.ecommerce.app.order;
 
 import com.ecommerce.app.address.Address;
-import com.ecommerce.app.email.EmailService;
-import com.ecommerce.app.email.EmailTemplateName;
 import com.ecommerce.app.email.OrderItem;
 import com.ecommerce.app.handler.exceptions.InsufficientStockException;
 import com.ecommerce.app.handler.exceptions.ResourceNotFoundException;
@@ -14,8 +12,8 @@ import com.ecommerce.app.order.repos.WebOrderContentRepository;
 import com.ecommerce.app.order.repos.WebOrderRepository;
 import com.ecommerce.app.product.ProductRepository;
 import com.ecommerce.app.user.AppUser;
-import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +32,7 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final InventoryRepository inventoryRepository;
     private final WebOrderContentRepository webOrderContentRepository;
-    private final EmailService emailService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public List<WebOrder> getOrders(AppUser user) {
         Long userId = user.getId();
@@ -50,7 +48,7 @@ public class OrderService {
     }
 
     @Transactional
-    public WebOrder addOrder(AppUser appUser, List<WebOrderContentDTO> dto, Long addressId) throws MessagingException {
+    public WebOrder addOrder(AppUser appUser, List<WebOrderContentDTO> dto, Long addressId) {
         Address address = addressRepository.findByIdAndAppUser(addressId, appUser)
                 .orElseThrow(() -> new ResourceNotFoundException("Address", addressId));
 
@@ -96,7 +94,7 @@ public class OrderService {
                 .mapToInt(item -> item.getPrice() * item.getQuantity())
                 .sum();
 
-        emailService.sendOrderEmail(appUser.getEmail(), appUser.getUsername(), EmailTemplateName.ORDER_CONFIRMATION, orderItems, totalPrice, "Your Order Confirmation");
+        eventPublisher.publishEvent(new OrderPlacedEvent(appUser.getEmail(), appUser.getUsername(), orderItems, totalPrice));
 
         return webOrderRepository.save(savedOrder);
     }

@@ -68,4 +68,12 @@ public abstract class IntegrationTest {
     protected ResponseEntity<String> call(HttpMethod method, String path, HttpHeaders headers) {
         return call(method, path, headers, null);
     }
+
+    /** Number of emails Mailpit has received for the given recipient. */
+    protected int emailsReceivedBy(String recipient) {
+        String url = "http://" + MAILPIT.getHost() + ":" + MAILPIT.getMappedPort(8025)
+                + "/api/v1/search?query=to:\"" + recipient + "\"";
+        Map<?, ?> result = http.getForObject(url, Map.class);
+        return ((Number) result.get("messages_count")).intValue();
+    }
 }
