@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,6 +52,13 @@ public class WebOrder {
         this.contents = new ArrayList<>();
         this.createdDate = createdDate;
         this.lastModifiedDate = lastModifiedDate;
+    }
+
+    /** Order total from the prices recorded on each line. */
+    public BigDecimal getTotal() {
+        return contents.stream()
+                .map(line -> line.getUnitPrice().multiply(BigDecimal.valueOf(line.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     @Override

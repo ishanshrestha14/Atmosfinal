@@ -80,15 +80,16 @@ The backend is organised **by feature** rather than by layer (`auth`, `product`,
 
 | Layer | Technologies |
 |---|---|
-| Backend | Java 17, Spring Boot 3, Spring Security 6, Spring Data JPA / Hibernate, Bean Validation, Spring AOP, Thymeleaf, springdoc-openapi |
+| Backend | Java 21, Spring Boot 3.5, Spring Security 6, Spring Data JPA / Hibernate, Bean Validation, Spring AOP, Thymeleaf, springdoc-openapi |
 | Auth | JWT (jjwt), BCrypt |
 | Frontend | React 18, Vite, Tailwind CSS, React Router, React Hook Form, Axios, Framer Motion |
-| Data | PostgreSQL 16 |
+| Data | PostgreSQL 16, Flyway migrations |
+| Testing | JUnit 5, Testcontainers (real PostgreSQL and SMTP), AssertJ, Awaitility |
 | Infrastructure | Docker (multi-stage builds), Docker Compose, nginx, Mailpit |
 
 ## Running without Docker
 
-Requires JDK 17 and Node 20+. Start only the infrastructure in Docker and run the apps on the host for hot reload:
+Requires JDK 21 and Node 20+. Start only the infrastructure in Docker and run the apps on the host for hot reload:
 
 ```bash
 docker compose up -d db mail
@@ -99,6 +100,21 @@ cd server && ./mvnw spring-boot:run
 # Storefront: http://localhost:5173
 cd client && npm install && npm run dev
 ```
+
+## Running the tests
+
+The integration tests start real PostgreSQL and Mailpit containers with [Testcontainers](https://testcontainers.com/), so Docker must be running. Use JDK 21.
+
+```bash
+cd server && ./mvnw verify
+```
+
+Highlights:
+
+- `OrderConcurrencyIT` sends 20 simultaneous checkouts for 5 units of stock and asserts exactly 5 succeed
+- `RoleAccessIT`, `OrderApiIT` and `AddressApiIT` cover role checks and per-user ownership of orders and addresses
+- `OrderEmailIT` makes PostgreSQL reject a transaction at `COMMIT` and asserts no confirmation email is sent
+- `PricingIT` covers exact decimal prices and order lines that keep the price paid
 
 ## Configuration
 
@@ -181,11 +197,11 @@ Full, interactive documentation is available at `/swagger-ui/index.html` while t
 Active work on this project, tracked as individual pull requests:
 
 - [x] One-command local environment with Docker Compose, seed data and a local mail inbox
-- [ ] Automated test suite: unit tests, `@WebMvcTest` security tests, and Testcontainers integration tests against real PostgreSQL
-- [ ] Concurrency-safe stock reservation (optimistic locking) with a multi-threaded overselling test
-- [ ] Ownership checks on orders and addresses; tighter authorisation on inventory endpoints
-- [ ] Send email after the transaction commits (transactional events or an outbox)
-- [ ] `BigDecimal` money handling, with the price recorded on each order line at purchase time
+- [x] Integration test suite against real PostgreSQL and SMTP with Testcontainers
+- [x] Concurrency-safe stock reservation, proven by a multi-threaded overselling test
+- [x] Enforced role checks and per-user ownership of orders and addresses
+- [x] Confirmation emails sent only after the order commits
+- [x] Exact decimal prices, with the price recorded on each order line at purchase time
 - [ ] RFC 7807 `ProblemDetail` error responses
 - [x] Flyway schema migrations to replace `ddl-auto`
 - [ ] GitHub Actions CI and a public cloud deployment

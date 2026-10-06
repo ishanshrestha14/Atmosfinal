@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @Entity
 @Builder
@@ -27,6 +29,10 @@ public class WebOrderContent {
 
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
+
+    /** Price per unit at the time of purchase; independent of later product price changes. */
+    @Column(name = "unit_price", nullable = false, precision = 10, scale = 2)
+    private BigDecimal unitPrice;
 
     @JsonIgnore
     @ManyToOne(optional = false)
