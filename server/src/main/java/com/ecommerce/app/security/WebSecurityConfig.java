@@ -34,7 +34,11 @@ public class WebSecurityConfig {
                                     "/inventory",
                                     "/inventory/**",
                                     "/cta",
-                                    "/refresh-token"
+                                    "/refresh-token",
+                                    "/actuator/health",
+                                    "/swagger-ui/**",
+                                    "/swagger-ui.html",
+                                    "/v3/api-docs/**"
 //                                    "/staff/register"
                             )
                             .permitAll()
