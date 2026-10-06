@@ -10,7 +10,7 @@ const heroSlide = [
     img: AppleVision,
     brand: "Apple",
     title: "Apple Vision Pro",
-    feature: "Virtail Reality",
+    feature: "Virtual Reality",
     description:
       "Experience a new dimension with the Apple Vision Pro, an augmented reality headset that brings digital experiences to life in your surroundings.",
   },
