@@ -75,7 +75,7 @@
             </thead>
             <tbody>
             <tr th:each="item : ${orderItems}">
-                <td><img th:src="${item.image}" alt="product image"/></td>
+                <td><img th:src="${storefrontUrl + item.image}" alt="product image"/></td>
                 <td th:text="${item.name}">Product Name</td>
                 <td th:text="${item.quantity}">0</td>
                 <td th:text="${item.price}">0.00</td>
